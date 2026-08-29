@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "clouddrive",
+      "runtimeExecutable": "C:/Users/user/Documents/Cynthia/env/Scripts/python.exe",
+      "runtimeArgs": ["app.py"],
+      "port": 5000
+    }
+  ]
+}

@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Studio · Nigeria Theatre Lighting Digital Archive</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #ffffff;
+            --bg-soft: #f7f7f8;
+            --bg-elevated: #ffffff;
+            --border: #e5e5e7;
+            --text: #1f2023;
+            --text-muted: #6b6f76;
+            --accent: #667eea;
+            --accent-hover: #5a67d8;
+            --user-bubble: #667eea;
+            --user-text: #ffffff;
+            --assistant-bubble: #f2f3f5;
+            --danger: #e53e3e;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #1a1b1e;
+                --bg-soft: #202123;
+                --bg-elevated: #2a2b2e;
+                --border: #3a3b3e;
+                --text: #ececf1;
+                --text-muted: #9a9ba0;
+                --assistant-bubble: #2a2b2e;
+            }
+        }
+
+        html, body { height: 100%; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px 20px;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg);
+            flex-shrink: 0;
+        }
+
+        header .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        header .brand .dot {
+            width: 26px; height: 26px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #667eea, #9f7aea);
+            display: grid; place-items: center;
+            font-size: 15px;
+        }
+
+        header nav { display: flex; align-items: center; gap: 8px; }
+
+        .link-btn {
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 13px;
+            padding: 7px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            transition: background .15s, color .15s;
+            white-space: nowrap;
+        }
+        .link-btn:hover { background: var(--bg-soft); color: var(--text); }
+
+        /* Conversation area */
+        .chat {
+            flex: 1;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+
+        .chat-inner {
+            max-width: 760px;
+            margin: 0 auto;
+            padding: 28px 20px 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 22px;
+        }
+
+        /* Empty / welcome state */
+        .welcome {
+            margin: auto;
+            text-align: center;
+            padding: 60px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+        }
+        .welcome .logo {
+            width: 54px; height: 54px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #667eea, #9f7aea);
+            display: grid; place-items: center;
+            font-size: 28px;
+        }
+        .welcome h1 { font-size: 24px; font-weight: 600; }
+        .welcome p { color: var(--text-muted); font-size: 14px; max-width: 420px; }
+
+        .suggestions {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+            width: 100%;
+            max-width: 560px;
+        }
+        .suggestion {
+            text-align: left;
+            border: 1px solid var(--border);
+            background: var(--bg-elevated);
+            color: var(--text);
+            border-radius: 12px;
+            padding: 12px 14px;
+            font-size: 13px;
+            line-height: 1.4;
+            cursor: pointer;
+            transition: border-color .15s, transform .1s;
+        }
+        .suggestion:hover { border-color: var(--accent); transform: translateY(-1px); }
+        .suggestion strong { display: block; font-weight: 600; margin-bottom: 2px; }
+        .suggestion span { color: var(--text-muted); }
+
+        /* Messages */
+        .msg { display: flex; gap: 12px; align-items: flex-start; }
+        .msg.user { flex-direction: row-reverse; }
+
+        .avatar {
+            width: 30px; height: 30px;
+            border-radius: 8px;
+            flex-shrink: 0;
+            display: grid; place-items: center;
+            font-size: 15px;
+        }
+        .msg.assistant .avatar { background: linear-gradient(135deg, #667eea, #9f7aea); }
+        .msg.user .avatar { background: var(--bg-soft); border: 1px solid var(--border); }
+
+        .bubble {
+            padding: 11px 15px;
+            border-radius: 16px;
+            font-size: 14.5px;
+            line-height: 1.5;
+            max-width: 78%;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+        .msg.user .bubble { background: var(--user-bubble); color: var(--user-text); border-bottom-right-radius: 6px; }
+        .msg.assistant .bubble { background: var(--assistant-bubble); color: var(--text); border-bottom-left-radius: 6px; max-width: 88%; }
+
+        .thinking { display: inline-flex; gap: 5px; align-items: center; color: var(--text-muted); }
+        .thinking .d {
+            width: 7px; height: 7px; border-radius: 50%;
+            background: var(--text-muted);
+            animation: bounce 1.2s infinite ease-in-out;
+        }
+        .thinking .d:nth-child(2) { animation-delay: .18s; }
+        .thinking .d:nth-child(3) { animation-delay: .36s; }
+        @keyframes bounce { 0%, 80%, 100% { transform: scale(.6); opacity: .5; } 40% { transform: scale(1); opacity: 1; } }
+
+        .result-img {
+            margin-top: 10px;
+            border-radius: 12px;
+            max-width: 100%;
+            width: 420px;
+            display: block;
+            border: 1px solid var(--border);
+            background: var(--bg-soft);
+        }
+
+        .result-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+        .action {
+            font-size: 12.5px;
+            padding: 6px 11px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--bg-elevated);
+            color: var(--text);
+            cursor: pointer;
+            text-decoration: none;
+            transition: background .15s;
+        }
+        .action:hover { background: var(--bg-soft); }
+        .action.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+        .action.primary:hover { background: var(--accent-hover); }
+
+        .saved-note { font-size: 12px; color: var(--text-muted); margin-top: 8px; }
+        .error-text { color: var(--danger); }
+
+        /* Composer */
+        .composer-wrap {
+            flex-shrink: 0;
+            border-top: 1px solid var(--border);
+            background: var(--bg);
+            padding: 14px 20px 18px;
+        }
+        .composer {
+            max-width: 760px;
+            margin: 0 auto;
+        }
+
+        .style-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 10px; }
+        .chip {
+            font-size: 12px;
+            padding: 5px 11px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: var(--bg-elevated);
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all .15s;
+        }
+        .chip:hover { color: var(--text); border-color: var(--accent); }
+        .chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+        .input-row {
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+            border: 1px solid var(--border);
+            background: var(--bg-elevated);
+            border-radius: 20px;
+            padding: 10px 10px 10px 16px;
+            transition: border-color .15s;
+        }
+        .input-row:focus-within { border-color: var(--accent); }
+
+        textarea#prompt {
+            flex: 1;
+            border: none;
+            outline: none;
+            resize: none;
+            background: transparent;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 15px;
+            line-height: 1.5;
+            max-height: 180px;
+            padding: 4px 0;
+        }
+        textarea#prompt::placeholder { color: var(--text-muted); }
+
+        #sendBtn {
+            flex-shrink: 0;
+            width: 38px; height: 38px;
+            border-radius: 12px;
+            border: none;
+            background: var(--accent);
+            color: #fff;
+            font-size: 18px;
+            cursor: pointer;
+            display: grid; place-items: center;
+            transition: background .15s, opacity .15s;
+        }
+        #sendBtn:hover:not(:disabled) { background: var(--accent-hover); }
+        #sendBtn:disabled { opacity: .45; cursor: not-allowed; }
+
+        .composer-hint { text-align: center; font-size: 11.5px; color: var(--text-muted); margin-top: 8px; }
+
+        .banner {
+            max-width: 760px;
+            margin: 14px auto 0;
+            padding: 12px 16px;
+            border-radius: 12px;
+            background: #fff5f5;
+            color: #c53030;
+            font-size: 13px;
+            border: 1px solid #feb2b2;
+        }
+        @media (prefers-color-scheme: dark) {
+            .banner { background: #3a2626; color: #feb2b2; border-color: #7a3b3b; }
+        }
+
+        @media (max-width: 600px) {
+            .suggestions { grid-template-columns: 1fr; }
+            .result-img { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="brand">
+            <span class="dot">🎨</span>
+            <span>Image Studio</span>
+        </div>
+        <nav>
+            <a class="link-btn" href="{{ url_for('index') }}">← Back to Archive</a>
+            <a class="link-btn" href="{{ url_for('auth.logout') }}">Logout</a>
+        </nav>
+    </header>
+
+    {% if not ai_enabled %}
+    <div class="banner">
+        Image generation is not configured. Set <code>GEMINI_API_KEY</code> in your <code>.env</code> file and restart the app.
+    </div>
+    {% endif %}
+
+    <div class="chat" id="chat">
+        <div class="chat-inner" id="chatInner">
+            <div class="welcome" id="welcome">
+                <div class="logo">🎨</div>
+                <h1>Describe an image to create</h1>
+                <p>Tell me what you want to see — subject, setting, mood, lighting, style. Each image is saved straight to your archive.</p>
+                <div class="suggestions" id="suggestions">
+                    <button class="suggestion" data-prompt="A Nigerian theatre stage bathed in warm amber wash lighting, dramatic side key light, performers mid-scene, cinematic, high detail">
+                        <strong>Stage lighting scene</strong>
+                        <span>Amber wash, dramatic side key light</span>
+                    </button>
+                    <button class="suggestion" data-prompt="Technical lighting plot diagram for a proscenium theatre, top-down view, fixtures labelled, clean vector style, white background">
+                        <strong>Lighting plot diagram</strong>
+                        <span>Top-down technical drawing</span>
+                    </button>
+                    <button class="suggestion" data-prompt="Close-up of a vintage Fresnel stage lantern glowing against a dark backstage, moody, photorealistic, shallow depth of field">
+                        <strong>Vintage stage lantern</strong>
+                        <span>Moody photoreal close-up</span>
+                    </button>
+                    <button class="suggestion" data-prompt="Colour gel wash across a smoke-filled stage, deep blues and magentas, silhouetted dancer, atmospheric, concert photography style">
+                        <strong>Colour gel atmosphere</strong>
+                        <span>Blue and magenta haze</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="composer-wrap">
+        <div class="composer">
+            <div class="style-chips" id="styleChips">
+                <button class="chip" data-style="photorealistic, highly detailed">Photorealistic</button>
+                <button class="chip" data-style="digital art, concept art">Digital art</button>
+                <button class="chip" data-style="3D render, octane">3D render</button>
+                <button class="chip" data-style="watercolour illustration">Watercolour</button>
+                <button class="chip" data-style="minimal line art, vector">Line art</button>
+                <button class="chip" data-style="cinematic lighting, film still">Cinematic</button>
+            </div>
+            <div class="input-row">
+                <textarea id="prompt" rows="1" placeholder="Describe the image you want…" {% if not ai_enabled %}disabled{% endif %}></textarea>
+                <button id="sendBtn" title="Generate" {% if not ai_enabled %}disabled{% endif %}>↑</button>
+            </div>
+            <div class="composer-hint">Enter to generate · Shift+Enter for a new line</div>
+        </div>
+    </div>
+
+    <script>
+        const chat = document.getElementById('chat');
+        const chatInner = document.getElementById('chatInner');
+        const welcome = document.getElementById('welcome');
+        const promptEl = document.getElementById('prompt');
+        const sendBtn = document.getElementById('sendBtn');
+        const styleChips = document.getElementById('styleChips');
+        const AI_ENABLED = {{ 'true' if ai_enabled else 'false' }};
+
+        let busy = false;
+        const activeStyles = new Set();
+
+        // Auto-grow textarea
+        function autoGrow() {
+            promptEl.style.height = 'auto';
+            promptEl.style.height = Math.min(promptEl.scrollHeight, 180) + 'px';
+        }
+        promptEl.addEventListener('input', autoGrow);
+
+        // Suggestions
+        document.getElementById('suggestions').addEventListener('click', (e) => {
+            const btn = e.target.closest('.suggestion');
+            if (!btn) return;
+            promptEl.value = btn.dataset.prompt;
+            autoGrow();
+            promptEl.focus();
+        });
+
+        // Style chips
+        styleChips.addEventListener('click', (e) => {
+            const chip = e.target.closest('.chip');
+            if (!chip) return;
+            const style = chip.dataset.style;
+            if (activeStyles.has(style)) { activeStyles.delete(style); chip.classList.remove('active'); }
+            else { activeStyles.add(style); chip.classList.add('active'); }
+        });
+
+        promptEl.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                send();
+            }
+        });
+        sendBtn.addEventListener('click', send);
+
+        function escapeHtml(s) {
+            const d = document.createElement('div');
+            d.textContent = s;
+            return d.innerHTML;
+        }
+
+        function scrollToBottom() {
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        function addUserMessage(text) {
+            const el = document.createElement('div');
+            el.className = 'msg user';
+            el.innerHTML = `<div class="avatar">🧑</div><div class="bubble">${escapeHtml(text)}</div>`;
+            chatInner.appendChild(el);
+            scrollToBottom();
+        }
+
+        function addAssistantMessage() {
+            const el = document.createElement('div');
+            el.className = 'msg assistant';
+            el.innerHTML = `
+                <div class="avatar">🎨</div>
+                <div class="bubble">
+                    <span class="thinking"><span class="d"></span><span class="d"></span><span class="d"></span> Generating your image…</span>
+                </div>`;
+            chatInner.appendChild(el);
+            scrollToBottom();
+            return el.querySelector('.bubble');
+        }
+
+        async function send() {
+            if (busy || !AI_ENABLED) return;
+            const raw = promptEl.value.trim();
+            if (!raw) return;
+
+            const styleSuffix = activeStyles.size ? (', ' + Array.from(activeStyles).join(', ')) : '';
+            const fullPrompt = raw + styleSuffix;
+
+            if (welcome) welcome.remove();
+
+            busy = true;
+            sendBtn.disabled = true;
+            promptEl.value = '';
+            autoGrow();
+
+            addUserMessage(fullPrompt);
+            const bubble = addAssistantMessage();
+
+            try {
+                const res = await fetch('/api/generate-image', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt: fullPrompt, folder_id: 0 })
+                });
+                const data = await res.json();
+
+                if (!res.ok) {
+                    bubble.innerHTML = `<span class="error-text">⚠️ ${escapeHtml(data.error || 'Image generation failed.')}</span>`;
+                    scrollToBottom();
+                    return;
+                }
+
+                const f = data.file;
+                bubble.innerHTML = `
+                    <div>Here's your image.</div>
+                    <img class="result-img" src="${f.url}" alt="${escapeHtml(f.prompt || 'Generated image')}">
+                    <div class="result-actions">
+                        <a class="action primary" href="${f.url}" download>⬇️ Download</a>
+                        <a class="action" href="/" >📁 Open in Archive</a>
+                        <button class="action" data-regen="${escapeHtml(fullPrompt)}">🔄 Regenerate</button>
+                    </div>
+                    <div class="saved-note">Saved to your archive as “${escapeHtml(f.name)}”.</div>`;
+                bubble.querySelector('[data-regen]').addEventListener('click', (e) => {
+                    promptEl.value = e.target.dataset.regen;
+                    autoGrow();
+                    send();
+                });
+                scrollToBottom();
+            } catch (err) {
+                bubble.innerHTML = `<span class="error-text">⚠️ ${escapeHtml(err.message || 'Network error.')}</span>`;
+            } finally {
+                busy = false;
+                sendBtn.disabled = !AI_ENABLED;
+                promptEl.focus();
+            }
+        }
+
+        promptEl.focus();
+    </script>
+</body>
+</html>

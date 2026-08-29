@@ -1,0 +1,28 @@
+# Secrets / local config
+.env
+.env.local
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtualenvs
+env/
+venv/
+.venv/
+
+# App runtime data (regenerated on first run)
+instance/
+static/uploads/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Misc
+*.log
+*.zip
+.claude/scheduled_tasks.lock

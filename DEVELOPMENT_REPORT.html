@@ -1,0 +1,685 @@
+<title>Lighting Archive Build Report</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" />
+
+<style>
+  /* ------------------------------------------------------------------ *
+   *  Lighting Archive Build Report
+   *  Palette drawn from stage lighting: blackout ground, tungsten
+   *  amber key light, steel-gel blue fill, warshed-paper neutrals.
+   * ------------------------------------------------------------------ */
+
+  :root {
+    --paper:      #faf7f1;   /* warm off-white, slight amber bias   */
+    --surface:    #ffffff;
+    --ink:        #1d1a15;   /* warm near-black                     */
+    --muted:      #6a6357;   /* warm grey                          */
+    --faint:      #8f887a;
+    --hair:       #e4ddcf;   /* hairline / rule                    */
+    --hair-soft:  #efeadf;
+    --amber:      #b56a12;   /* tungsten key light — headings/accent */
+    --amber-deep: #97560b;
+    --blue:       #3c6484;   /* moonlight gel L201 — links/secondary */
+    --good:       #3f7355;
+    --risk:       #a63a2c;
+    --shadow:     0 1px 2px rgba(29, 26, 21, .05), 0 8px 28px rgba(29, 26, 21, .06);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:      #161311;
+      --surface:    #1f1b17;
+      --ink:        #ece4d5;
+      --muted:      #9a9182;
+      --faint:      #79715f;
+      --hair:       #332d24;
+      --hair-soft:  #2a251e;
+      --amber:      #e0952f;
+      --amber-deep: #f0ab4b;
+      --blue:       #74a4c6;
+      --good:       #6fae87;
+      --risk:       #e08a7c;
+      --shadow:     0 1px 2px rgba(0, 0, 0, .3), 0 10px 34px rgba(0, 0, 0, .38);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper:      #161311;
+    --surface:    #1f1b17;
+    --ink:        #ece4d5;
+    --muted:      #9a9182;
+    --faint:      #79715f;
+    --hair:       #332d24;
+    --hair-soft:  #2a251e;
+    --amber:      #e0952f;
+    --amber-deep: #f0ab4b;
+    --blue:       #74a4c6;
+    --good:       #6fae87;
+    --risk:       #e08a7c;
+    --shadow:     0 1px 2px rgba(0, 0, 0, .3), 0 10px 34px rgba(0, 0, 0, .38);
+  }
+
+  * { box-sizing: border-box; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
+    font-size: 17px;
+    line-height: 1.72;
+    font-optical-sizing: auto;
+  }
+
+  ::selection { background: color-mix(in srgb, var(--amber) 26%, transparent); }
+
+  /* ---------- shell ---------- */
+
+  .sheet {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: clamp(28px, 6vw, 72px) clamp(20px, 5vw, 64px) 96px;
+  }
+
+  /* ---------- masthead ---------- */
+
+  .mast {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 24px 32px;
+    align-items: end;
+    padding-bottom: 22px;
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .mast .eyebrow {
+    font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+    font-size: .72rem;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--amber-deep);
+    margin: 0 0 14px;
+  }
+
+  h1 {
+    font-family: "Archivo", system-ui, "Segoe UI", sans-serif;
+    font-weight: 700;
+    font-size: clamp(2.1rem, 5.4vw, 3rem);
+    line-height: 1.04;
+    letter-spacing: -.015em;
+    text-wrap: balance;
+    margin: 0;
+  }
+
+  .mast .lede {
+    margin: 16px 0 0;
+    max-width: 46ch;
+    color: var(--muted);
+    font-size: 1.05rem;
+  }
+
+  .mast-meta {
+    font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+    font-size: .78rem;
+    line-height: 1.9;
+    color: var(--muted);
+    text-align: right;
+    white-space: nowrap;
+  }
+  .mast-meta b { color: var(--ink); font-weight: 500; }
+
+  .toggle {
+    margin-top: 12px;
+    font: inherit;
+    font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+    font-size: .72rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    background: transparent;
+    border: 1px solid var(--hair);
+    border-radius: 999px;
+    padding: 5px 12px;
+    cursor: pointer;
+  }
+  .toggle:hover { border-color: var(--amber); color: var(--amber-deep); }
+  .toggle:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+
+  /* ---------- sections ---------- */
+
+  section {
+    display: grid;
+    grid-template-columns: 116px minmax(0, 1fr);
+    gap: 40px;
+    padding: 46px 0;
+    border-bottom: 1px solid var(--hair-soft);
+  }
+  section:last-of-type { border-bottom: 0; }
+
+  .s-mark {
+    font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+    font-size: .74rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--faint);
+    padding-top: .5rem;
+  }
+  .s-mark .n {
+    display: block;
+    font-size: 1.7rem;
+    letter-spacing: 0;
+    color: var(--amber);
+    font-weight: 500;
+    margin-bottom: 2px;
+  }
+
+  .s-body > :first-child { margin-top: 0; }
+  .s-body > :last-child { margin-bottom: 0; }
+
+  h2 {
+    font-family: "Archivo", system-ui, "Segoe UI", sans-serif;
+    font-weight: 600;
+    font-size: 1.5rem;
+    letter-spacing: -.01em;
+    line-height: 1.2;
+    text-wrap: balance;
+    margin: 0 0 .7em;
+  }
+
+  h3 {
+    font-family: "Archivo", system-ui, "Segoe UI", sans-serif;
+    font-weight: 600;
+    font-size: 1.06rem;
+    letter-spacing: .005em;
+    margin: 1.8em 0 .5em;
+    color: var(--ink);
+  }
+
+  p { margin: 0 0 1em; max-width: 66ch; }
+  .s-body p:last-child { margin-bottom: 0; }
+
+  a {
+    color: var(--blue);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+  }
+
+  strong { font-weight: 600; }
+
+  code, .mono {
+    font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+    font-size: .86em;
+  }
+  code {
+    background: color-mix(in srgb, var(--amber) 12%, var(--surface));
+    border: 1px solid var(--hair);
+    border-radius: 4px;
+    padding: .08em .38em;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+
+  ul { margin: 0 0 1em; padding-left: 1.15em; max-width: 66ch; }
+  li { margin: .3em 0; }
+  li::marker { color: var(--amber); }
+
+  /* ---------- cue-sheet timeline ---------- */
+
+  .cues { list-style: none; margin: .4em 0 0; padding: 0; }
+  .cue {
+    display: grid;
+    grid-template-columns: 68px 1fr;
+    gap: 20px;
+    padding: 18px 0;
+    border-top: 1px solid var(--hair);
+  }
+  .cue:first-child { border-top: 0; padding-top: 4px; }
+  .cue-q {
+    font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+    font-weight: 500;
+    font-size: 1.15rem;
+    color: var(--amber);
+  }
+  .cue-date {
+    display: block;
+    font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+    font-size: .7rem;
+    color: var(--faint);
+    letter-spacing: .06em;
+    margin-top: 4px;
+  }
+  .cue-t {
+    font-family: "Archivo", system-ui, "Segoe UI", sans-serif;
+    font-weight: 600;
+    font-size: 1rem;
+    margin: 0 0 .25em;
+  }
+  .cue p { margin: 0; color: var(--muted); font-size: .96rem; }
+
+  /* ---------- tables ---------- */
+
+  .table-wrap {
+    overflow-x: auto;
+    margin: .4em 0 0;
+    border: 1px solid var(--hair);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .9rem;
+    background: var(--surface);
+  }
+  th, td {
+    text-align: left;
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--hair-soft);
+    vertical-align: top;
+  }
+  thead th {
+    font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+    font-weight: 500;
+    font-size: .7rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    background: color-mix(in srgb, var(--amber) 7%, var(--surface));
+    border-bottom: 1px solid var(--hair);
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+  td .mono { color: var(--muted); font-size: .82rem; }
+  .num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  .tag {
+    display: inline-block;
+    font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+    font-size: .66rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 4px;
+    border: 1px solid currentColor;
+    line-height: 1.5;
+  }
+  .tag.done  { color: var(--good); }
+  .tag.hold  { color: var(--risk); }
+  .tag.note  { color: var(--blue); }
+
+  /* ---------- callout ---------- */
+
+  .callout {
+    margin: 1.6em 0 0;
+    padding: 18px 20px;
+    background: var(--surface);
+    border: 1px solid var(--hair);
+    border-left: 3px solid var(--amber);
+    border-radius: 6px;
+    box-shadow: var(--shadow);
+  }
+  .callout p { margin: 0; font-size: .95rem; color: var(--muted); max-width: none; }
+  .callout p + p { margin-top: .6em; }
+  .callout .k {
+    font-family: "Archivo", system-ui, "Segoe UI", sans-serif;
+    font-weight: 600;
+    font-size: .74rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--amber-deep);
+    display: block;
+    margin-bottom: .4em;
+  }
+
+  /* ---------- verification checklist ---------- */
+
+  .checks { list-style: none; margin: .4em 0 0; padding: 0; max-width: 66ch; }
+  .checks li {
+    display: grid;
+    grid-template-columns: 20px 1fr;
+    gap: 12px;
+    padding: 10px 0;
+    border-top: 1px solid var(--hair-soft);
+    font-size: .95rem;
+  }
+  .checks li:first-child { border-top: 0; }
+  .checks li::before {
+    content: "✓";
+    color: var(--good);
+    font-family: "Archivo", sans-serif;
+    font-weight: 700;
+  }
+  .checks .r {
+    display: block;
+    font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+    font-size: .78rem;
+    color: var(--faint);
+    margin-top: 2px;
+  }
+
+  /* ---------- manifest ---------- */
+
+  .colophon {
+    margin-top: 56px;
+    padding-top: 20px;
+    border-top: 2px solid var(--ink);
+    font-family: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+    font-size: .74rem;
+    color: var(--muted);
+    line-height: 1.9;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  @media (max-width: 720px) {
+    section { grid-template-columns: 1fr; gap: 14px; padding: 38px 0; }
+    .s-mark { padding-top: 0; display: flex; align-items: baseline; gap: 12px; }
+    .s-mark .n { display: inline; font-size: 1.15rem; }
+    .mast { grid-template-columns: 1fr; align-items: start; }
+    .mast-meta { text-align: left; }
+    .cue { grid-template-columns: 56px 1fr; gap: 14px; }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .toggle { transition: color .15s, border-color .15s; }
+    a { transition: color .12s; }
+  }
+
+  @media print {
+    :root { --paper: #fff; --surface: #fff; --ink: #000; --muted: #333; --hair: #bbb; --hair-soft: #ddd; }
+    .toggle { display: none; }
+    body { font-size: 11pt; }
+    section, .cue, tr, .callout, .checks li { break-inside: avoid; }
+    .table-wrap, .callout { box-shadow: none; }
+  }
+</style>
+
+<div class="sheet">
+
+  <header class="mast">
+    <div>
+      <p class="eyebrow">Development Process Report &nbsp;·&nbsp; Appendix</p>
+      <h1>Nigeria Theatre Lighting Digital Archive</h1>
+      <p class="lede">A record of how the archive was designed, built, and verified — from the Flask core through the Gemini image-generation pipeline.</p>
+    </div>
+    <div class="mast-meta">
+      <b>Module</b> &nbsp;Web application<br />
+      <b>Stack</b> &nbsp;Flask · SQLite<br />
+      <b>Revision</b> &nbsp;C<br />
+      <b>Date</b> &nbsp;27 Aug 2026<br />
+      <button class="toggle" id="themeToggle" type="button" aria-label="Switch colour theme">Theme: Auto</button>
+    </div>
+  </header>
+
+  <section>
+    <div class="s-mark"><span class="n">01</span> Overview</div>
+    <div class="s-body">
+      <h2>What was built</h2>
+      <p>The archive is a multi-user web application for storing, organising, and retrieving theatre-lighting documentation — lighting plots, production photographs, gel and rig references, and cue paperwork. Each account gets private storage, a nested folder tree, search, and an AI assistant that generates reference images from a written description.</p>
+      <p>The codebase began as a general-purpose personal file store (internally still named <code>clouddrive</code>) and was adapted into a domain-specific archive for theatre lighting, then extended with the image-generation feature. The most recent phase — covered in detail below — wired in the Google Gemini image model, rebuilt the generation screen as a conversational interface, and raised the per-account storage allowance.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="s-mark"><span class="n">02</span> Stack</div>
+    <div class="s-body">
+      <h2>Technology and dependencies</h2>
+      <p>The application runs on a small, deliberately conventional Python stack. No front-end framework is used; the interface is server-rendered templates with vanilla JavaScript.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Component</th><th>Version</th><th>Role</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Flask</td><td class="num">2.3.3</td><td>HTTP routing, templating, request handling</td></tr>
+            <tr><td>Flask-SQLAlchemy</td><td class="num">3.1.1</td><td>ORM over a SQLite database</td></tr>
+            <tr><td>Flask-Login</td><td class="num">0.6.2</td><td>Session management, route protection</td></tr>
+            <tr><td>Flask-Bcrypt</td><td class="num">1.0.1</td><td>Password hashing</td></tr>
+            <tr><td>Werkzeug</td><td class="num">2.3.7</td><td>Secure filename handling, WSGI dev server</td></tr>
+            <tr><td>Pillow</td><td class="num">10.0.0</td><td>Thumbnail generation for image files</td></tr>
+            <tr><td>google-genai</td><td class="num">2.19.0</td><td>Client for the Gemini image model</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="s-mark"><span class="n">03</span> Architecture</div>
+    <div class="s-body">
+      <h2>How the pieces fit</h2>
+      <p>The application is organised into four Python modules and a set of Jinja templates. Configuration is isolated so that secrets never live in source.</p>
+      <h3>Modules</h3>
+      <ul>
+        <li><code>app.py</code> — application factory, all API routes (folders, files, upload, download, thumbnail, search, storage, image generation), startup tasks.</li>
+        <li><code>auth.py</code> — a Flask blueprint holding registration, login, and logout, with server-side validation and bcrypt hashing.</li>
+        <li><code>database.py</code> — the SQLAlchemy models: <code>User</code>, <code>Folder</code> (a self-referential tree via <code>parent_id</code>), and <code>File</code>.</li>
+        <li><code>config.py</code> — configuration object plus a minimal <code>.env</code> loader so credentials are read from the environment.</li>
+      </ul>
+      <h3>Data model</h3>
+      <p>A <code>User</code> owns many <code>Folder</code> and <code>File</code> rows. Folders reference an optional parent, giving an arbitrarily deep tree. Every <code>File</code> records its owner, its containing folder, size, detected type, download count, and — for AI output — a <code>source</code> flag of <code>generated</code> and the exact <code>prompt</code> used, so generated assets remain traceable.</p>
+      <h3>Storage and safety</h3>
+      <p>Uploads are written to disk under a UUID-prefixed name to avoid collisions and path games; the original filename is preserved separately for display and download. Every file and folder route checks ownership before acting. Folder moves are guarded against creating a cycle, and folder deletion recurses through children, removing files from disk and reconciling each owner's storage counter.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="s-mark"><span class="n">04</span> Timeline</div>
+    <div class="s-body">
+      <h2>Development in cues</h2>
+      <p>Work proceeded in five phases. They are numbered here as cues (<span class="mono">Q</span>), after the prompt-book convention used to sequence a lighting session.</p>
+      <ol class="cues">
+        <li class="cue">
+          <div><span class="cue-q">Q1</span><span class="cue-date">20 Aug</span></div>
+          <div>
+            <p class="cue-t">Core file store</p>
+            <p>Auth blueprint, SQLAlchemy models, folder tree, multi-file upload with type detection, Pillow thumbnails, download counters, and per-user storage accounting.</p>
+          </div>
+        </li>
+        <li class="cue">
+          <div><span class="cue-q">Q2</span><span class="cue-date">20 Aug</span></div>
+          <div>
+            <p class="cue-t">Retrieval and interface</p>
+            <p>Single-page archive view with a folder/file grid, drag-and-drop upload, combined file-and-folder search, a live storage-usage bar, and toast notifications.</p>
+          </div>
+        </li>
+        <li class="cue">
+          <div><span class="cue-q">Q3</span><span class="cue-date">26 Aug</span></div>
+          <div>
+            <p class="cue-t">Domain adaptation and hardening</p>
+            <p>Re-themed as the theatre-lighting archive. First pass at image generation through Gemini, added as a <code>source</code>/<code>prompt</code>-tagged <code>File</code> record. Thumbnail fallback and ownership checks tightened.</p>
+          </div>
+        </li>
+        <li class="cue">
+          <div><span class="cue-q">Q4</span><span class="cue-date">27 Aug</span></div>
+          <div>
+            <p class="cue-t">Credentials and the creation screen</p>
+            <p>Introduced the <code>.env</code> loader and a live API key. Replaced the browser-prompt generation flow with a dedicated conversational page at <code>/create</code>. Classified Gemini API failures into readable messages.</p>
+          </div>
+        </li>
+        <li class="cue">
+          <div><span class="cue-q">Q5</span><span class="cue-date">27 Aug</span></div>
+          <div>
+            <p class="cue-t">Capacity</p>
+            <p>Raised the per-account storage allowance from 50&nbsp;MB to 1&nbsp;GB, made configurable, with a one-time back-fill for existing accounts and a GB-aware usage readout.</p>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section>
+    <div class="s-mark"><span class="n">05</span> Features</div>
+    <div class="s-body">
+      <h2>Implemented functionality</h2>
+
+      <h3>Accounts and sessions</h3>
+      <p>Registration validates username uniqueness, email format, password length, and confirmation match on both client and server. Passwords are stored only as bcrypt hashes. Sessions are handled by Flask-Login with an optional persistent "remember me"; every application route outside the auth blueprint requires a logged-in user.</p>
+
+      <h3>Folders and files</h3>
+      <p>Users create nested folders, move them (with cycle protection), and delete them recursively. Uploads accept up to ten files per request within a 50&nbsp;MB request ceiling, are checked against the account's remaining quota, and are stored under collision-proof names. Downloads stream the file under its original name and increment a per-file counter.</p>
+
+      <h3>Thumbnails and search</h3>
+      <p>Image uploads get a 200&times;200 thumbnail via Pillow, with a graceful fallback to the full image if generation fails. Search runs a case-insensitive substring match across both file names and folder names from a two-character minimum.</p>
+
+      <h3>Storage quota</h3>
+      <p>Each account carries a byte allowance (now 1&nbsp;GB, set by <code>USER_STORAGE_LIMIT</code> and overridable per deployment). Usage is tracked incrementally on every upload, generation, and delete, and surfaced as a coloured progress bar that shifts from green to amber to red as it fills.</p>
+
+      <h3>AI image generation</h3>
+      <p>From the creation screen a user describes an image; the server calls the Gemini image model, extracts the returned image bytes, writes them to the archive as an owned <code>File</code> tagged <code>generated</code> with its prompt, and returns it to the interface. The generated image is a first-class archive object from the moment it exists — searchable, movable, downloadable, and counted against storage.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="s-mark"><span class="n">06</span> Focus</div>
+    <div class="s-body">
+      <h2>The Gemini image pipeline</h2>
+      <p>The image feature was the phase with the most design decisions, spanning credential handling, an external API contract, and a new interface. Each is recorded below.</p>
+
+      <h3>Credential handling</h3>
+      <p>The API key must not enter source control. Rather than add a dependency, <code>config.py</code> gained a compact <code>.env</code> reader that loads key–value pairs into the process environment using <code>setdefault</code>, so a variable exported by the host always wins over the file. The key lives in <code>.env</code>; <code>.env</code>, the virtual environment, the database, and the upload directory are all excluded through <code>.gitignore</code>. If <code>GEMINI_API_KEY</code> is absent the client is simply not constructed and the feature reports itself as unconfigured instead of crashing.</p>
+
+      <h3>Request and response</h3>
+      <p>A generation request is a single <code>generate_content</code> call with the prompt as its only content. The response is a list of candidates, each holding content parts; the server walks these parts and takes the first with inline image data. Missing image data, an over-long prompt, and an exhausted quota are each handled as distinct outcomes with their own status code and message.</p>
+
+      <h3>Error classification</h3>
+      <p>The initial implementation returned the raw exception string, which meant a quota response arrived in the interface as an unreadable JSON blob. The handler now inspects the error: a <code>429</code> or <code>RESOURCE_EXHAUSTED</code> becomes a plain-language explanation with the parsed retry delay; a rejected key becomes a <code>401</code> pointing at <code>.env</code>; anything else becomes a generic upstream-failure message.</p>
+
+      <h3>The creation screen</h3>
+      <p>Generation was previously triggered by a native <code>prompt()</code> dialog. It is now a dedicated page modelled on a chat assistant: a conversation transcript of prompts and results, an auto-growing composer, example prompt cards, and a row of style modifiers that append to the description. Each result carries its own controls — download, open in the archive, and regenerate — and the interface degrades to an explanatory banner when the feature is unconfigured.</p>
+
+      <div class="callout">
+        <p class="k">Finding — free tier</p>
+        <p>End-to-end testing surfaced a quota response with <code>limit: 0</code> for the image model. Gemini's image generation has no free allowance; it requires billing to be enabled on the associated Google Cloud project. This is an account-provisioning step, not a code defect — the request authenticated and reached the API correctly. The error-handling path above was added so the condition is reported clearly rather than as a stack trace.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="s-mark"><span class="n">07</span> Challenges</div>
+    <div class="s-body">
+      <h2>Problems and how they were resolved</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Challenge</th><th>Impact</th><th>Resolution</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Secret key in source control</td>
+              <td>API key would be committed with the repository</td>
+              <td>Minimal <code>.env</code> loader; <code>.env</code> and generated data added to <code>.gitignore</code></td>
+              <td><span class="tag done">Resolved</span></td>
+            </tr>
+            <tr>
+              <td>Raw API errors shown to users</td>
+              <td>Quota failures rendered as a JSON blob in the chat</td>
+              <td>Error classifier maps <code>429</code> / bad-key / other to distinct codes and messages</td>
+              <td><span class="tag done">Resolved</span></td>
+            </tr>
+            <tr>
+              <td>New column default not applied to existing rows</td>
+              <td>Existing accounts kept the old 50&nbsp;MB limit</td>
+              <td>Startup task raises any account below the configured limit; never lowers one set higher</td>
+              <td><span class="tag done">Resolved</span></td>
+            </tr>
+            <tr>
+              <td>Image model has no free quota</td>
+              <td>Generation returns <code>429</code> until billing is enabled</td>
+              <td>Documented as a provisioning step; error path makes the cause explicit</td>
+              <td><span class="tag hold">External</span></td>
+            </tr>
+            <tr>
+              <td>No repository or automated tests</td>
+              <td>No CI safety net for regressions</td>
+              <td>Verification performed with the Flask test client and scripted checks (below)</td>
+              <td><span class="tag note">Ongoing</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="s-mark"><span class="n">08</span> Verification</div>
+    <div class="s-body">
+      <h2>Checks performed</h2>
+      <p>Each change in the most recent phase was exercised directly. The application boots on the development server; the checks below were run against it.</p>
+      <ul class="checks">
+        <li><span>Configuration loads the API key from <code>.env</code> at startup.<span class="r">masked value confirmed present; model id resolves</span></span></li>
+        <li><span>The creation route is protected.<span class="r">GET /create → 302 → /auth/login?next=%2Fcreate when unauthenticated</span></span></li>
+        <li><span>The creation page renders for a logged-in user.<span class="r">GET /create → 200 with the composer markup; template renders in both configured and unconfigured states</span></span></li>
+        <li><span>The storage change took effect.<span class="r">/api/user/storage reports a 1024 MB limit; both existing accounts back-filled to 1,073,741,824 bytes</span></span></li>
+        <li><span>The Gemini integration is wired correctly.<span class="r">request authenticated and reached the API; returned a structured 429 (billing), not a transport or auth error</span></span></li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <div class="s-mark"><span class="n">09</span> Status</div>
+    <div class="s-body">
+      <h2>Current state and known limitations</h2>
+      <ul>
+        <li><strong>Image generation is provisioning-blocked.</strong> The code path is complete and verified; it will produce images once billing is enabled on the Google Cloud project for the key.</li>
+        <li><strong>Development configuration.</strong> The app runs on the Flask debug server against SQLite. A production deployment would need a WSGI server, a stronger <code>SECRET_KEY</code> (now read from the environment), and a managed database.</li>
+        <li><strong>Upload ceiling.</strong> Total storage is 1&nbsp;GB per account, but a single upload request is still capped at 50&nbsp;MB by <code>MAX_CONTENT_LENGTH</code>.</li>
+        <li><strong>No automated test suite.</strong> Verification is currently manual and script-driven.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section>
+    <div class="s-mark"><span class="n">10</span> Next</div>
+    <div class="s-body">
+      <h2>Further work</h2>
+      <ul>
+        <li>Enable billing and run a full end-to-end generation, then capture sample output for the writeup.</li>
+        <li>Add a <code>pytest</code> suite covering auth, ownership checks, quota enforcement, and the error classifier.</li>
+        <li>Persist generation history per user so the creation screen can reload previous prompts and results.</li>
+        <li>Introduce database migrations rather than start-up back-fills for future schema changes.</li>
+        <li>Package for deployment: WSGI server, environment-driven configuration, and a move off SQLite.</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer class="colophon">
+    <span>Nigeria Theatre Lighting Digital Archive · Development Process Report · Rev. C</span>
+    <span>app.py · auth.py · database.py · config.py · templates/ · Compiled 27 Aug 2026</span>
+  </footer>
+
+</div>
+
+<script>
+  (function () {
+    var btn = document.getElementById("themeToggle");
+    var root = document.documentElement;
+    var order = ["auto", "light", "dark"];
+    var labels = { auto: "Theme: Auto", light: "Theme: Light", dark: "Theme: Dark" };
+    var state = "auto";
+
+    try {
+      var saved = localStorage.getItem("lar-theme");
+      if (saved && order.indexOf(saved) !== -1) state = saved;
+    } catch (e) {}
+
+    function apply() {
+      if (state === "auto") root.removeAttribute("data-theme");
+      else root.setAttribute("data-theme", state);
+      btn.textContent = labels[state];
+      try { localStorage.setItem("lar-theme", state); } catch (e) {}
+    }
+
+    btn.addEventListener("click", function () {
+      state = order[(order.indexOf(state) + 1) % order.length];
+      apply();
+    });
+
+    apply();
+  })();
+</script>

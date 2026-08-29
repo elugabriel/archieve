@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nigeria Theatre Lighting Digital Archive</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: white;
+        }
+
+        header {
+            background: white;
+            padding: 15px 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        header h1 {
+            color: #667eea;
+            font-size: 24px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-info span {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .logout-btn {
+            background: #f56565;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: #e53e3e;
+        }
+
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: #f8f9fa;
+            padding: 20px;
+            border-right: 1px solid #e0e0e0;
+            overflow-y: auto;
+        }
+
+        .btn-primary, .btn-secondary {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102,126,234,0.4);
+        }
+
+        .btn-secondary {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #38a169;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(72,187,120,0.4);
+        }
+
+        .storage-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+        }
+
+        .storage-info h3 {
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .storage-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .storage-fill {
+            height: 100%;
+            transition: width 0.3s;
+            width: 0%;
+        }
+
+        .content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .breadcrumb {
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .breadcrumb button {
+            background: #667eea;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 5px 10px;
+            border-radius: 3px;
+        }
+
+        .breadcrumb button:hover {
+            background: #5a67d8;
+        }
+
+        .search-bar {
+            margin-bottom: 20px;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .search-bar input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 20px;
+        }
+
+        .folder-item, .image-item {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+        }
+
+        .folder-item:hover, .image-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            border-color: #667eea;
+        }
+
+        .folder-item .icon, .file-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .image-item img {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .item-name {
+            font-size: 14px;
+            word-break: break-word;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        .item-size {
+            font-size: 11px;
+            color: #999;
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 5px;
+            margin-top: 10px;
+            justify-content: center;
+        }
+
+        .delete-btn, .download-btn {
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: background 0.3s;
+        }
+
+        .delete-btn {
+            background: #f56565;
+            color: white;
+        }
+
+        .delete-btn:hover {
+            background: #e53e3e;
+        }
+
+        .download-btn {
+            background: #4299e1;
+            color: white;
+        }
+
+        .download-btn:hover {
+            background: #3182ce;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px;
+            color: #999;
+            font-size: 16px;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 5px;
+            color: white;
+            z-index: 10000;
+            animation: slideIn 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .notification.success {
+            background: #48bb78;
+        }
+
+        .notification.error {
+            background: #f56565;
+        }
+
+        .notification.info {
+            background: #4299e1;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .drag-over {
+            background: #f0f0f0;
+            border: 2px dashed #667eea;
+        }
+
+        hr {
+            margin: 15px 0;
+            border: none;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 240px;
+            }
+            
+            .items-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 15px;
+            }
+            
+            header {
+                padding: 15px 20px;
+            }
+            
+            .user-info {
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>☁️ Nigeria Theatre Lighting Digital Archive</h1>
+            <div class="user-info">
+                <span>Welcome, {{ current_user.username }}!</span>
+                <a href="{{ url_for('auth.logout') }}" class="logout-btn">Logout</a>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <button id="newFolderBtn" class="btn-primary">📁 New Folder</button>
+                <button id="uploadBtn" class="btn-secondary">📤 Upload Files</button>
+                <a id="generateImageBtn" class="btn-secondary" href="/create" style="display:block; text-align:center; text-decoration:none; line-height:1.2;">✨ Create with AI</a>
+                <hr>
+                <div class="storage-info">
+                    <h3>💾 Storage Usage</h3>
+                    <div class="storage-bar">
+                        <div id="storageFill" class="storage-fill"></div>
+                    </div>
+                    <p id="storageText">Loading...</p>
+                </div>
+                <hr>
+                <div class="storage-info">
+                    <h3>ℹ️ Tips</h3>
+                    <p style="font-size: 12px; color: #666;">
+                        • Drag & drop files to upload<br>
+                        • Click folders to navigate<br>
+                        • Use search to find files<br>
+                        • 1 GB storage per user
+                    </p>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main class="content">
+                <div class="search-bar">
+                    <input type="text" id="searchInput" placeholder="🔍 Search files and folders..." autocomplete="off">
+                </div>
+                
+                <div class="breadcrumb">
+                    <button id="backBtn">🏠 Root</button>
+                    <span id="breadcrumbNav"></span>
+                </div>
+                
+                <div id="itemsContainer" class="items-grid">
+                    <!-- Folders and files will appear here -->
+                    <div class="empty-state">Loading...</div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // API Service
+        class CloudDriveAPI {
+            constructor() {
+                this.currentFolderId = null;
+                this.searchQuery = '';
+                this.init();
+            }
+            
+            async init() {
+                await this.loadContent();
+                this.setupEventListeners();
+                this.updateStorageInfo();
+                this.setupDragAndDrop();
+            }
+            
+            async apiCall(url, options = {}) {
+                const response = await fetch(url, {
+                    ...options,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...options.headers
+                    }
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json().catch(() => ({ error: 'Request failed' }));
+                    throw new Error(error.error || 'API call failed');
+                }
+                
+                return response.json();
+            }
+            
+            async loadContent() {
+                try {
+                    const url = this.searchQuery 
+                        ? `/api/search?q=${encodeURIComponent(this.searchQuery)}`
+                        : null;
+                    
+                    if (url) {
+                        const results = await this.apiCall(url);
+                        this.displaySearchResults(results);
+                    } else {
+                        const [folders, files] = await Promise.all([
+                            this.apiCall(`/api/folders?parent_id=${this.currentFolderId || ''}`),
+                            this.apiCall(`/api/files?folder_id=${this.currentFolderId || 0}`)
+                        ]);
+                        this.displayContent([...folders, ...files]);
+                    }
+                    
+                    this.updateBreadcrumb();
+                } catch (error) {
+                    console.error('Error loading content:', error);
+                    this.showError('Failed to load content');
+                }
+            }
+            
+            displayContent(items) {
+                const container = document.getElementById('itemsContainer');
+                
+                if (items.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            📂 This folder is empty<br>
+                            Create a folder or upload files to get started!
+                        </div>
+                    `;
+                    return;
+                }
+                
+                container.innerHTML = items.map(item => {
+                    if (item.type === 'folder') {
+                        return `
+                            <div class="folder-item" onclick="cloudDrive.navigateToFolder(${item.id})">
+                                <div class="icon">📁</div>
+                                <div class="item-name">${this.escapeHtml(item.name)}</div>
+                                <div class="item-size">${new Date(item.created_at).toLocaleDateString()}</div>
+                                <div class="item-actions">
+                                    <button class="delete-btn" onclick="event.stopPropagation(); cloudDrive.deleteFolder(${item.id})">Delete</button>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        const sizeMB = (item.size / (1024 * 1024)).toFixed(2);
+                        const icon = this.getFileIcon(item.type);
+                        return `
+                            <div class="image-item" data-file-id="${item.id}">
+                                ${item.thumbnail ? `<img src="${item.thumbnail}" alt="${item.name}">` : `<div class="file-icon">${icon}</div>`}
+                                <div class="item-name">${this.escapeHtml(item.name)}</div>
+                                <div class="item-size">${sizeMB} MB • ${item.downloads || 0} downloads</div>
+                                <div class="item-actions">
+                                    <button class="download-btn" onclick="cloudDrive.downloadFile(${item.id})">⬇️ Download</button>
+                                    <button class="delete-btn" onclick="cloudDrive.deleteFile(${item.id})">Delete</button>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }).join('');
+            }
+            
+            displaySearchResults(results) {
+                const container = document.getElementById('itemsContainer');
+                const allItems = [...results.files, ...results.folders];
+                
+                if (allItems.length === 0) {
+                    container.innerHTML = '<div class="empty-state">🔍 No results found for "' + this.escapeHtml(this.searchQuery) + '"</div>';
+                    return;
+                }
+                
+                container.innerHTML = allItems.map(item => {
+                    if (item.name) { // Folder
+                        return `
+                            <div class="folder-item" onclick="cloudDrive.navigateToFolder(${item.id})">
+                                <div class="icon">📁</div>
+                                <div class="item-name">${this.escapeHtml(item.name)}</div>
+                                <div class="item-actions">
+                                    <button class="delete-btn" onclick="event.stopPropagation(); cloudDrive.deleteFolder(${item.id})">Delete</button>
+                                </div>
+                            </div>
+                        `;
+                    } else { // File
+                        const sizeMB = (item.size / (1024 * 1024)).toFixed(2);
+                        return `
+                            <div class="image-item">
+                                <div class="file-icon">${this.getFileIcon(item.type)}</div>
+                                <div class="item-name">${this.escapeHtml(item.name)}</div>
+                                <div class="item-size">${sizeMB} MB</div>
+                                <div class="item-actions">
+                                    <button class="download-btn" onclick="cloudDrive.downloadFile(${item.id})">⬇️ Download</button>
+                                    <button class="delete-btn" onclick="cloudDrive.deleteFile(${item.id})">Delete</button>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }).join('');
+            }
+            
+            getFileIcon(type) {
+                const icons = {
+                    'image': '🖼️',
+                    'video': '🎥',
+                    'audio': '🎵',
+                    'pdf': '📄',
+                    'document': '📝',
+                    'other': '📎'
+                };
+                return icons[type] || '📎';
+            }
+            
+            async createFolder() {
+                const name = prompt('Enter folder name:');
+                if (!name || !name.trim()) return;
+                
+                try {
+                    await this.apiCall('/api/folder', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            name: name.trim(),
+                            parent_id: this.currentFolderId || 0
+                        })
+                    });
+                    await this.loadContent();
+                    this.showSuccess('Folder created successfully');
+                } catch (error) {
+                    this.showError(error.message);
+                }
+            }
+            
+            async uploadFiles(files) {
+                const formData = new FormData();
+                files.forEach(file => formData.append('files', file));
+                formData.append('folder_id', this.currentFolderId || 0);
+                
+                try {
+                    const response = await fetch('/api/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    const result = await response.json();
+                    if (response.ok) {
+                        await this.loadContent();
+                        this.updateStorageInfo();
+                        this.showSuccess(result.message);
+                        if (result.errors && result.errors.length) {
+                            this.showError(result.errors.join(', '));
+                        }
+                    } else {
+                        throw new Error(result.error);
+                    }
+                } catch (error) {
+                    this.showError(error.message);
+                }
+            }
+            
+            async generateImage() {
+                const promptText = prompt('Describe the image you want to generate:');
+                if (!promptText || !promptText.trim()) return;
+
+                this.showInfo('Generating image... this can take a few seconds');
+                try {
+                    const result = await this.apiCall('/api/generate-image', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            prompt: promptText.trim(),
+                            folder_id: this.currentFolderId || 0
+                        })
+                    });
+                    await this.loadContent();
+                    this.updateStorageInfo();
+                    this.showSuccess(result.message);
+                } catch (error) {
+                    this.showError(error.message);
+                }
+            }
+
+            async deleteFile(fileId) {
+                if (!confirm('Are you sure you want to delete this file?')) return;
+                
+                try {
+                    await this.apiCall(`/api/files/${fileId}/delete`, { method: 'DELETE' });
+                    await this.loadContent();
+                    this.updateStorageInfo();
+                    this.showSuccess('File deleted successfully');
+                } catch (error) {
+                    this.showError(error.message);
+                }
+            }
+            
+            async deleteFolder(folderId) {
+                if (!confirm('Are you sure you want to delete this folder and ALL its contents? This cannot be undone!')) return;
+                
+                try {
+                    await this.apiCall(`/api/folder/${folderId}/delete`, { method: 'DELETE' });
+                    await this.loadContent();
+                    this.updateStorageInfo();
+                    this.showSuccess('Folder deleted successfully');
+                } catch (error) {
+                    this.showError(error.message);
+                }
+            }
+            
+            async downloadFile(fileId) {
+                window.open(`/api/files/${fileId}/download`, '_blank');
+            }
+            
+            navigateToFolder(folderId) {
+                this.currentFolderId = folderId;
+                this.searchQuery = '';
+                document.getElementById('searchInput').value = '';
+                this.loadContent();
+            }
+            
+            navigateUp() {
+                this.currentFolderId = null;
+                this.searchQuery = '';
+                document.getElementById('searchInput').value = '';
+                this.loadContent();
+            }
+            
+            async search() {
+                const query = document.getElementById('searchInput').value.trim();
+                if (query.length < 2 && query.length > 0) {
+                    return;
+                }
+                this.searchQuery = query;
+                this.currentFolderId = null;
+                await this.loadContent();
+            }
+            
+            async updateStorageInfo() {
+                try {
+                    const info = await this.apiCall('/api/user/storage');
+                    const percentage = info.percentage;
+                    const fillColor = percentage > 90 ? '#f56565' : percentage > 70 ? '#ed8936' : '#48bb78';
+                    
+                    const fmt = (mb) => mb >= 1024 ? `${(mb / 1024).toFixed(2)} GB` : `${mb} MB`;
+                    document.getElementById('storageFill').style.width = `${percentage}%`;
+                    document.getElementById('storageFill').style.background = fillColor;
+                    document.getElementById('storageText').innerHTML = `
+                        ${fmt(info.used)} / ${fmt(info.limit)} used<br>
+                        <small>${percentage.toFixed(1)}% of storage</small>
+                    `;
+                } catch (error) {
+                    console.error('Failed to load storage info:', error);
+                    document.getElementById('storageText').textContent = 'Unable to load storage info';
+                }
+            }
+            
+            setupDragAndDrop() {
+                const dropZone = document.querySelector('.content');
+                
+                dropZone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    dropZone.classList.add('drag-over');
+                });
+                
+                dropZone.addEventListener('dragleave', () => {
+                    dropZone.classList.remove('drag-over');
+                });
+                
+                dropZone.addEventListener('drop', async (e) => {
+                    e.preventDefault();
+                    dropZone.classList.remove('drag-over');
+                    
+                    const files = Array.from(e.dataTransfer.files);
+                    if (files.length > 0) {
+                        this.showInfo(`Uploading ${files.length} file(s)...`);
+                        await this.uploadFiles(files);
+                    }
+                });
+            }
+            
+            setupEventListeners() {
+                document.getElementById('newFolderBtn').onclick = () => this.createFolder();
+                document.getElementById('uploadBtn').onclick = () => {
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.multiple = true;
+                    input.accept = 'image/*,video/*,audio/*,.pdf,.doc,.docx,.txt,.zip';
+                    input.onchange = (e) => {
+                        if (e.target.files.length) {
+                            this.uploadFiles(Array.from(e.target.files));
+                        }
+                    };
+                    input.click();
+                };
+                document.getElementById('backBtn').onclick = () => this.navigateUp();
+                
+                const searchInput = document.getElementById('searchInput');
+                let searchTimeout;
+                searchInput.oninput = () => {
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(() => this.search(), 300);
+                };
+                
+                // Refresh storage info every 30 seconds
+                setInterval(() => this.updateStorageInfo(), 30000);
+            }
+            
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+            
+            updateBreadcrumb() {
+                const breadcrumb = document.getElementById('breadcrumbNav');
+                if (!this.currentFolderId) {
+                    breadcrumb.innerHTML = '<span>Root</span>';
+                } else {
+                    breadcrumb.innerHTML = '<span>Current folder</span>';
+                }
+            }
+            
+            showSuccess(message) {
+                this.showNotification(message, 'success');
+            }
+            
+            showError(message) {
+                this.showNotification(message, 'error');
+            }
+            
+            showInfo(message) {
+                this.showNotification(message, 'info');
+            }
+            
+            showNotification(message, type) {
+                const notification = document.createElement('div');
+                notification.className = `notification ${type}`;
+                notification.textContent = message;
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    notification.style.animation = 'slideIn 0.3s ease reverse';
+                    setTimeout(() => notification.remove(), 300);
+                }, 3000);
+            }
+        }
+        
+        // Initialize the application
+        const cloudDrive = new CloudDriveAPI();
+    </script>
+</body>
+</html>
