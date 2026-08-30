@@ -476,10 +476,11 @@
                             <div class="folder-item" onclick="cloudDrive.navigateToFolder(${item.id})">
                                 <div class="icon">📁</div>
                                 <div class="item-name">${this.escapeHtml(item.name)}</div>
-                                <div class="item-size">${new Date(item.created_at).toLocaleDateString()}</div>
+                                <div class="item-size">${new Date(item.created_at).toLocaleDateString()} • by ${this.escapeHtml(item.owner || '')}</div>
+                                ${item.is_owner ? `
                                 <div class="item-actions">
                                     <button class="delete-btn" onclick="event.stopPropagation(); cloudDrive.deleteFolder(${item.id})">Delete</button>
-                                </div>
+                                </div>` : ''}
                             </div>
                         `;
                     } else {
@@ -489,10 +490,10 @@
                             <div class="image-item" data-file-id="${item.id}">
                                 ${item.thumbnail ? `<img src="${item.thumbnail}" alt="${item.name}">` : `<div class="file-icon">${icon}</div>`}
                                 <div class="item-name">${this.escapeHtml(item.name)}</div>
-                                <div class="item-size">${sizeMB} MB • ${item.downloads || 0} downloads</div>
+                                <div class="item-size">${sizeMB} MB • by ${this.escapeHtml(item.owner || '')} • ${item.downloads || 0} downloads</div>
                                 <div class="item-actions">
                                     <button class="download-btn" onclick="cloudDrive.downloadFile(${item.id})">⬇️ Download</button>
-                                    <button class="delete-btn" onclick="cloudDrive.deleteFile(${item.id})">Delete</button>
+                                    ${item.is_owner ? `<button class="delete-btn" onclick="cloudDrive.deleteFile(${item.id})">Delete</button>` : ''}
                                 </div>
                             </div>
                         `;
@@ -510,14 +511,16 @@
                 }
                 
                 container.innerHTML = allItems.map(item => {
-                    if (item.name) { // Folder
+                    if (!('size' in item)) { // Folder
                         return `
                             <div class="folder-item" onclick="cloudDrive.navigateToFolder(${item.id})">
                                 <div class="icon">📁</div>
                                 <div class="item-name">${this.escapeHtml(item.name)}</div>
+                                <div class="item-size">by ${this.escapeHtml(item.owner || '')}</div>
+                                ${item.is_owner ? `
                                 <div class="item-actions">
                                     <button class="delete-btn" onclick="event.stopPropagation(); cloudDrive.deleteFolder(${item.id})">Delete</button>
-                                </div>
+                                </div>` : ''}
                             </div>
                         `;
                     } else { // File
@@ -526,10 +529,10 @@
                             <div class="image-item">
                                 <div class="file-icon">${this.getFileIcon(item.type)}</div>
                                 <div class="item-name">${this.escapeHtml(item.name)}</div>
-                                <div class="item-size">${sizeMB} MB</div>
+                                <div class="item-size">${sizeMB} MB • by ${this.escapeHtml(item.owner || '')}</div>
                                 <div class="item-actions">
                                     <button class="download-btn" onclick="cloudDrive.downloadFile(${item.id})">⬇️ Download</button>
-                                    <button class="delete-btn" onclick="cloudDrive.deleteFile(${item.id})">Delete</button>
+                                    ${item.is_owner ? `<button class="delete-btn" onclick="cloudDrive.deleteFile(${item.id})">Delete</button>` : ''}
                                 </div>
                             </div>
                         `;
