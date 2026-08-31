@@ -35,6 +35,43 @@ def load_user(user_id):
 # Register blueprints
 app.register_blueprint(auth_bp, url_prefix='/auth')
 
+# Username of the built-in account that owns the default sections. It has an
+# unusable password hash, so it can never be logged into.
+SYSTEM_USERNAME = 'System'
+
+
+def seed_default_sections():
+    """Ensure the configured top-level sections exist.
+
+    The sections are owned by a built-in ``System`` account so no regular user
+    can delete them from the UI, and they are created once at the archive root.
+    """
+    sections = app.config.get('DEFAULT_SECTIONS') or []
+    if not sections:
+        return
+
+    system_user = User.query.filter_by(username=SYSTEM_USERNAME).first()
+    if system_user is None:
+        system_user = User(
+            username=SYSTEM_USERNAME,
+            email='system@archive.local',
+            password_hash='!',  # unusable — bcrypt hashes never look like this
+            storage_limit=0,
+        )
+        db.session.add(system_user)
+        db.session.flush()
+
+    created = False
+    for name in sections:
+        exists = Folder.query.filter_by(name=name, parent_id=None).first()
+        if exists is None:
+            db.session.add(Folder(name=name, user_id=system_user.id, parent_id=None))
+            created = True
+
+    if created:
+        db.session.commit()
+
+
 # Create tables
 with app.app_context():
     db.create_all()
@@ -44,11 +81,14 @@ with app.app_context():
     # Raise existing accounts to the configured storage limit (leaves any
     # account that was manually given a larger allowance untouched).
     storage_limit = app.config['USER_STORAGE_LIMIT']
-    updated = User.query.filter(User.storage_limit < storage_limit).update(
-        {User.storage_limit: storage_limit}
-    )
+    updated = User.query.filter(
+        User.storage_limit < storage_limit,
+        User.username != SYSTEM_USERNAME,
+    ).update({User.storage_limit: storage_limit})
     if updated:
         db.session.commit()
+
+    seed_default_sections()
 
 def allowed_file(filename):
     return '.' in filename and \
@@ -148,21 +188,27 @@ def create_folder():
     
     if not folder_name:
         return jsonify({'error': 'Folder name required'}), 400
-    
-    # Check for duplicate folder name in same location
-    existing = Folder.query.filter_by(
-        user_id=current_user.id,
-        name=folder_name,
-        parent_id=parent_id
-    ).first()
-    
+
+    normalized_parent = parent_id if parent_id else None
+
+    # Top-level folders are shared sections, so their names must be unique across
+    # the whole archive; subfolders only need to be unique within their parent.
+    if normalized_parent is None:
+        existing = Folder.query.filter_by(name=folder_name, parent_id=None).first()
+    else:
+        existing = Folder.query.filter_by(
+            user_id=current_user.id,
+            name=folder_name,
+            parent_id=normalized_parent
+        ).first()
+
     if existing:
         return jsonify({'error': 'Folder already exists'}), 400
     
     folder = Folder(
         name=folder_name,
         user_id=current_user.id,
-        parent_id=parent_id if parent_id != 0 else None
+        parent_id=normalized_parent
     )
     
     db.session.add(folder)
@@ -182,7 +228,14 @@ def upload_files():
     
     files = request.files.getlist('files')
     folder_id = request.form.get('folder_id', type=int)
-    
+
+    # Content must be filed under a section (or one of its subfolders), never
+    # the bare archive root.
+    if not folder_id:
+        return jsonify({'error': 'Choose a section to upload into'}), 400
+    if Folder.query.get(folder_id) is None:
+        return jsonify({'error': 'That section no longer exists'}), 404
+
     if len(files) > app.config['MAX_FILES_PER_UPLOAD']:
         return jsonify({'error': f'Max {app.config["MAX_FILES_PER_UPLOAD"]} files per upload'}), 400
     
@@ -274,7 +327,13 @@ def generate_image():
 
     data = request.json or {}
     prompt_text = (data.get('prompt') or '').strip()
-    folder_id = data.get('folder_id')
+
+    try:
+        folder_id = int(data.get('folder_id') or 0)
+    except (TypeError, ValueError):
+        folder_id = 0
+    if folder_id and Folder.query.get(folder_id) is None:
+        folder_id = 0
 
     if not prompt_text:
         return jsonify({'error': 'Prompt is required'}), 400
@@ -388,6 +447,9 @@ def delete_file(file_id):
 def delete_folder(folder_id):
     folder = Folder.query.get_or_404(folder_id)
 
+    if folder.parent_id is None and folder.name in app.config['DEFAULT_SECTIONS']:
+        return jsonify({'error': 'Default sections cannot be deleted'}), 403
+
     # Only the folder's creator may delete it.
     if folder.user_id != current_user.id:
         return jsonify({'error': 'Only the user who created this folder can delete it'}), 403
@@ -476,7 +538,10 @@ def move_folder(folder_id):
     new_parent_id = data.get('new_parent_id')
     
     folder = Folder.query.get_or_404(folder_id)
-    
+
+    if folder.parent_id is None and folder.name in app.config['DEFAULT_SECTIONS']:
+        return jsonify({'error': 'Default sections cannot be moved'}), 403
+
     if folder.user_id != current_user.id:
         return jsonify({'error': 'Unauthorized'}), 403
     

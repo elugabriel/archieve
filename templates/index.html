@@ -319,6 +319,71 @@
             border: 2px dashed #667eea;
         }
 
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 20000;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            width: 90%;
+            max-width: 380px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+        }
+
+        .modal h3 {
+            margin-bottom: 6px;
+            font-size: 18px;
+            color: #333;
+        }
+
+        .modal p {
+            font-size: 13px;
+            color: #777;
+            margin-bottom: 16px;
+        }
+
+        .section-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .section-btn {
+            text-align: left;
+            padding: 12px 14px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background: #f8f9fa;
+            cursor: pointer;
+            font-size: 14px;
+            transition: border-color 0.15s, background 0.15s;
+        }
+
+        .section-btn:hover {
+            border-color: #667eea;
+            background: #eef0fb;
+        }
+
+        .modal-cancel {
+            margin-top: 16px;
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            background: #edf2f7;
+            color: #4a5568;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
         hr {
             margin: 15px 0;
             border: none;
@@ -388,7 +453,7 @@
                 </div>
                 
                 <div class="breadcrumb">
-                    <button id="backBtn">🏠 Root</button>
+                    <button id="backBtn">🏠 All Sections</button>
                     <span id="breadcrumbNav"></span>
                 </div>
                 
@@ -572,10 +637,17 @@
             }
             
             async uploadFiles(files) {
+                // Content can't land in the bare root — pick a section first.
+                let targetFolderId = this.currentFolderId;
+                if (!targetFolderId) {
+                    targetFolderId = await this.pickSection();
+                    if (!targetFolderId) return; // cancelled
+                }
+
                 const formData = new FormData();
                 files.forEach(file => formData.append('files', file));
-                formData.append('folder_id', this.currentFolderId || 0);
-                
+                formData.append('folder_id', targetFolderId);
+
                 try {
                     const response = await fetch('/api/upload', {
                         method: 'POST',
@@ -597,7 +669,50 @@
                     this.showError(error.message);
                 }
             }
-            
+
+            // Show the section chooser and resolve with the picked folder id,
+            // or null if the user cancels.
+            async pickSection() {
+                let sections = [];
+                try {
+                    sections = await this.apiCall('/api/folders?parent_id=');
+                } catch (error) {
+                    this.showError('Could not load sections');
+                    return null;
+                }
+
+                return new Promise((resolve) => {
+                    const overlay = document.createElement('div');
+                    overlay.className = 'modal-overlay';
+
+                    const buttons = sections.map(s =>
+                        `<button class="section-btn" data-id="${s.id}">📁 ${this.escapeHtml(s.name)}</button>`
+                    ).join('');
+
+                    overlay.innerHTML = `
+                        <div class="modal">
+                            <h3>Choose a section</h3>
+                            <p>Pick where this content should be filed.</p>
+                            <div class="section-list">${buttons}</div>
+                            <button class="modal-cancel">Cancel</button>
+                        </div>
+                    `;
+
+                    const close = (value) => {
+                        overlay.remove();
+                        resolve(value);
+                    };
+
+                    overlay.querySelectorAll('.section-btn').forEach(btn => {
+                        btn.onclick = () => close(parseInt(btn.dataset.id, 10));
+                    });
+                    overlay.querySelector('.modal-cancel').onclick = () => close(null);
+                    overlay.onclick = (e) => { if (e.target === overlay) close(null); };
+
+                    document.body.appendChild(overlay);
+                });
+            }
+
             async generateImage() {
                 const promptText = prompt('Describe the image you want to generate:');
                 if (!promptText || !promptText.trim()) return;
@@ -752,7 +867,7 @@
             updateBreadcrumb() {
                 const breadcrumb = document.getElementById('breadcrumbNav');
                 if (!this.currentFolderId) {
-                    breadcrumb.innerHTML = '<span>Root</span>';
+                    breadcrumb.innerHTML = '<span>All sections</span>';
                 } else {
                     breadcrumb.innerHTML = '<span>Current folder</span>';
                 }

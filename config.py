@@ -65,3 +65,13 @@ class Config:
     # local .env file; leaving it unset simply disables the feature.
     GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
     GEMINI_IMAGE_MODEL = os.environ.get('GEMINI_IMAGE_MODEL', 'gemini-2.5-flash-image')
+
+    # Default top-level sections. New content is filed under one of these rather
+    # than the archive root. Seeded on startup and protected from deletion.
+    DEFAULT_SECTIONS = [
+        'Lighting Plot',
+        'Instrument Schedule',
+        'Lighting Cue',
+        'Final Design',
+        'Analysis of Design',
+    ]
