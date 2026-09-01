@@ -74,4 +74,5 @@ class Config:
         'Lighting Cue',
         'Final Design',
         'Analysis of Design',
+        'Channel Distribution',
     ]

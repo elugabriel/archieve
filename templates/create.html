@@ -319,6 +319,16 @@
             .suggestions { grid-template-columns: 1fr; }
             .result-img { width: 100%; }
         }
+
+        .app-footer {
+            flex-shrink: 0;
+            text-align: center;
+            padding: 8px 20px;
+            font-size: 11.5px;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border);
+            background: var(--bg);
+        }
     </style>
 </head>
 <body>
@@ -388,6 +398,8 @@
             <div class="composer-hint">Enter to generate · Shift+Enter for a new line</div>
         </div>
     </div>
+
+    <footer class="app-footer">created by "Chinenyenwa Cynthia Nwabueze"</footer>
 
     <script>
         const chat = document.getElementById('chat');
